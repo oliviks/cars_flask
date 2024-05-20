@@ -1,4 +1,6 @@
-# Task origins: final project from the course "Python Applications' at Kozminski University.
+# Final Project - Flask using the Cars db
+
+**Task origins: final project from the course "Python Applications' at Kozminski University.**
 
 ## Requests & Flask
  
