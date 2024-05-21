@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <title>Add Record to {{ table_name }}</title>
+    <style>
+        @media screen and (max-height: 450px) {
+            .sidemenu {padding-top: 15px;}
+            .sidemenu a {font-size: 20px;}
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/POPbaseStyle.css') }}">
+</head>
+<body class="background_lightgrey">
+
+    <div class="sidemenu">
+        <a href="/">HOME PAGE</a>
+        <a href="javascript:void(0);" onclick="toggleMenu('databaseMenu')">DATABASE</a>
+        <div class="submenu" id="databaseMenu">
+            {% for table_name in table_names %}
+            <a href="/table/{{ table_name }}">{{ table_name }}</a>
+            {% endfor %}
+        </div>
+        <a href="javascript:void(0);" onclick="toggleMenu('actionsMenu')">ACTIONS</a>
+        <div class="submenu" id="actionsMenu">
+            <a href="/add_data">Add Data</a>
+            <a href="/edit_data">Edit Data</a>
+            <a href="/delete_data">Delete Data</a>
+        </div>
+    </div>
+
+<div class="main">
+    
+    <form method="post">
+        <h1 class="header_grey">Add Record to {{ table_name }}</h1>
+        {% for column in data[0].keys() if column != 'id' %}
+        <label for="{{ column }}">{{ column }}</label>
+        <input type="text" id="{{ column }}" name="{{ column }}">
+        {% endfor %}
+        <button class="btn-outline-secondary" type="submit">Add Record</button>
+    </form>
+</div>
+
+<script>
+    function toggleMenu(menuId) {
+      var menu = document.getElementById(menuId);
+      if (menu.style.display === "block") {
+        menu.style.display = "none";
+      } else {
+        menu.style.display = "block";
+      }
+    }
+</script>
+
+
+</body>
+</html>

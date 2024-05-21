@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Record</title>
+</head>
+<body>
+    <h1>Edit Record</h1>
+    <form action="/update_record" method="POST">
+        <input  name="table_name" value="{{ table_name }}">
+        <input  name="record_id" value="{{ record_id }}">
+        <!-- Add form fields for editing record data here -->
+        <label for="field1">Field 1:</label>
+        <input type="text" id="field1" name="field1"><br>
+        <label for="field2">Field 2:</label>
+        <input type="text" id="field2" name="field2"><br>
+        <!-- Add more fields as needed -->
+
+        <button type="submit">Update Record</button>
+    </form>
+</body>
+</html>

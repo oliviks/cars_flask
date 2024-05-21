@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <title>Filter Data</title>
+    <style>
+        @media screen and (max-height: 450px) {
+            .sidemenu {padding-top: 15px;}
+            .sidemenu a {font-size: 20px;}
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/POPbaseStyle.css') }}">
+</head>
+<body class="background_lightgrey">
+
+    <div class="sidemenu">
+        <a href="/">HOME PAGE</a>
+        <a href="javascript:void(0);" onclick="toggleMenu('databaseMenu')">DATABASE</a>
+        <div class="submenu" id="databaseMenu">
+            {% for table_name in table_names %}
+            <a href="/table/{{ table_name }}">{{ table_name }}</a>
+            {% endfor %}
+        </div>
+        <a href="javascript:void(0);" onclick="toggleMenu('actionsMenu')">ACTIONS</a>
+        <div class="submenu" id="actionsMenu">
+            <a href="/add_data">Add Data</a>
+            <a href="/edit_data">Edit Data</a>
+            <a href="/delete_data">Delete Data</a>
+            <a href="/filter_data">Filter Data</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <h1 class="header_grey">Filter Data</h1>
+        <form method="POST" action="/filter_data">
+            <div class="form-group">
+                <label for="customer_name">Customer Name:</label>
+                <input type="text" id="customer_name" name="customer_name">
+            </div>
+            <div class="form-group">
+                <label for="model_name">Model Name:</label>
+                <input type="text" id="model_name" name="model_name">
+            </div>
+            <div class="form-group">
+                <label for="model_price">Model Price (greater than):</label>
+                <input type="number" id="model_price" name="model_price">
+            </div>
+            <div class="form-group">
+                <label for="dealer_name">Dealer Name:</label>
+                <input type="text" id="dealer_name" name="dealer_name">
+            </div>
+            <button class="btn-outline-secondary" type="submit">Filter</button>
+        </form>
+
+        {% if results %}
+        <h2>Results</h2>
+        <table border="1">
+            <thead>
+                <tr>
+                    <th>Customer ID</th>
+                    <th>Customer Name</th>
+                    <th>Customer Email</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in results %}
+                <tr>
+                    <td>{{ row.customer_id }}</td>
+                    <td>{{ row.name }}</td>
+                    <td>{{ row.email }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No results found matching the criteria.</p>
+        {% endif %}
+    </div>
+
+    <script>
+        function toggleMenu(menuId) {
+            var menu = document.getElementById(menuId);
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            } else {
+                menu.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
