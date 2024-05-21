@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Models</title>
+    <style>
+        .color-circle {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            border: 1px solid black;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <h1>Car Models</h1>
+    <a href="{{ url_for('add_model') }}">Add Model</a>
+    <ul>
+        {% for model in models %}
+            <li>
+                <h2>{{ model.model_name }}</h2>
+                <p>Brand: {{ model.brand_name }}</p>
+                <p>Base Price: ${{ model.model_base_price }}</p>
+                {% if model.possible_colors %}
+                    <p>Colors:</p>
+                    <div>
+                        {% for color in model.possible_colors %}
+                            <div class="color-circle" style="background: {{ color }};"></div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <a href="{{ url_for('model_detail', model_id=model.model_id) }}">Edit</a>
+                <form action="{{ url_for('delete_model', model_id=model.model_id) }}" method="post" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
