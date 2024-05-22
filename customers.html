@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Customers</title>
+</head>
+<body>
+    <h1> Filter Customers based on criteria</h1>
+    
+    <!-- Filter Form -->
+    <form method="get" action="{{ url_for('customers') }}">
+        <p>Note: Start each word with a capital letter when filtering.</p>
+        
+        <label for="brand">Brand:</label>
+        <input type="text" id="brand" name="brand" value="{{ request.args.get('brand', '') }}">
+        
+        <label for="dealer">Dealer:</label>
+        <input type="text" id="dealer" name="dealer" value="{{ request.args.get('dealer', '') }}">
+        
+        <label for="purchase_price">Minimum Purchase Price [$]:</label>
+        <input type="text" id="purchase_price" name="purchase_price" value="{{ request.args.get('purchase_price', '') }}">
+        
+        <label for="model">Model:</label>
+        <input type="text" id="model" name="model" value="{{ request.args.get('model', '') }}">
+        
+        <button type="submit">Filter</button>
+    </form>
+    
+    <ul>
+        {% for customer in customers %}
+            <li>
+                {{ customer['first_name'] }} {{ customer['last_name'] }} {{ customer['email'] }}
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
