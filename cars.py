@@ -24,7 +24,7 @@ def get_table_names():
             cur = conn.cursor() # Calling the cursor() method on the connection object to execute SQL commands and fetch results from the database
             cur.execute("SELECT name FROM sqlite_master WHERE type='table';") # Executing an SQL query that retrieves the names of all tables in the db
             tables = cur.fetchall() # Fetching all results of the query and assigning them to the 'tables' variable. Each result is a row represented as a dictionary.
-            return [table['name'] for table in tables] # Returning a list of table names by iterating over the tables list and extracting the value associated with the key 'name'
+            return [table['name'] for table in tables if table['name'] != 'sqlite_sequence'] # Returning a list of table names by iterating over the tables list and extracting the value associated with the key 'name'. We are also filtering out the 'sqlite_sequence' table which is not relevant to end-users. 
         except sqlite3.Error as e:
             print(f"Error fetching table names: {e}")
             return [] # Returning an empty list if an exception occurs
@@ -180,3 +180,199 @@ def execute_custom_query(query, params):
         return [dict(row) for row in results] # converting each row from the result set into a dictionary using a list comprehension
     finally:
         conn.close()
+        
+
+#---------------------------- Functions for customers specifically ---------------------------- 
+
+def get_customers(brand=None, dealer=None, purchase_price=None, model=None):
+    conn = create_connection()
+    query = """
+        SELECT Customers.* FROM Customers
+        JOIN Customer_Ownership ON Customers.customer_id = Customer_Ownership.customer_id
+        JOIN Car_Vins ON Customer_Ownership.vin = Car_Vins.vin
+        JOIN Models ON Car_Vins.model_id = Models.model_id
+        JOIN Brands ON Models.brand_id = Brands.brand_id
+        JOIN Dealers ON Customer_Ownership.dealer_id = Dealers.dealer_id
+        WHERE 1=1
+    """
+    params = {}
+    if brand:
+        query += " AND Brands.brand_name = :brand"
+        params['brand'] = brand
+    if dealer:
+        query += " AND Dealers.dealer_name = :dealer"
+        params['dealer'] = dealer
+    if purchase_price:
+        query += " AND Customer_Ownership.purchase_price >= :purchase_price"
+        params['purchase_price'] = purchase_price
+    if model:
+        query += " AND Models.model_name = :model"
+        params['model'] = model
+
+    try:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        customers = cur.fetchall()
+        return [dict(row) for row in customers]
+    except sqlite3.Error as e:
+        print(f"Error fetching customers: {e}")
+        return []
+    finally:
+        conn.close()
+        
+#def get_customer_by_id(customer_id):
+#    conn = create_connection()
+#    try:
+#        cur = conn.cursor()
+#        cur.execute("SELECT * FROM Customers WHERE customer_id = ?", (customer_id,)) # The second argument to cur.execute is a tuple containing the actual value to replace the ? placeholder in the SQL statement
+#        customer = cur.fetchone()
+#        return dict(customer) if customer else None
+#    except sqlite3.Error as e:
+#        print(f"Error fetching customer by ID: {e}")
+#        return None
+#    finally:
+#        conn.close()
+
+#def add_customer(customer):
+#    conn = create_connection()
+#    if conn:
+#        try:
+#            cur = conn.cursor()
+#            columns = ', '.join(customer.keys()) # customer.keys() are the column names in CUSTOMERS table
+#            placeholders = ', '.join(['?'] * len(customer)) # len(customer) is equal to the number of columns in CUSTOMERS table
+#            sql = f"INSERT INTO Customers ({columns}) VALUES ({placeholders})"
+#            cur.execute(sql, tuple(customer.values())) # The ? placeholders in the SQL string are replaced by the values in the tuple in the correct order
+#            conn.commit()
+#        except sqlite3.Error as e:
+#            print(f"Error adding customer: {e}")
+#        finally:
+#            conn.close()
+
+#def update_customer(customer_id, customer):
+#    conn = create_connection()
+#    if conn:
+#        try:
+#            cur = conn.cursor()
+#            set_clause = ', '.join([f"{key} = ?" for key in customer.keys()]) # Customer keys are simply column names
+#            sql = f"UPDATE Customers SET {set_clause} WHERE customer_id = ?"
+#            values = list(customer.values()) # Converting the dictionary values to a list
+#            values.append(customer_id) # Adding the customer_id to the end of the list of values
+#            cur.execute(sql, values) # Executing the SQL UPDATE statement. The ? placeholders in the SQL string are replaced by the values in the values list in the correct order
+#            conn.commit()
+#        except sqlite3.Error as e:
+#            print(f"Error updating customer: {e}")
+#        finally:
+#            conn.close()
+
+#def delete_customer(customer_id):
+#    conn = create_connection()
+#    if conn:
+#        try:
+#            cur = conn.cursor()
+#            cur.execute("DELETE FROM Customers WHERE customer_id = ?", (customer_id,)) # The second argument to cur.execute is a tuple containing the actual value to replace the ? placeholder in the SQL statement
+#            conn.commit()
+#        except sqlite3.Error as e:
+#            print(f"Error deleting customer: {e}")
+#        finally:
+#            conn.close()
+            
+#---------------------------- Functions for car models specifically #----------------------------
+
+def get_models(car_color=None, brand=None, price=None):
+    conn = create_connection()
+    query = """
+    SELECT Models.*, GROUP_CONCAT(Car_Options.color) as possible_colors, Brands.brand_name 
+    FROM Models
+    JOIN Car_Options ON Models.model_id = Car_Options.model_id
+    JOIN Brands ON Brands.brand_id = Models.brand_id
+    WHERE 1=1
+    """
+    params = {}
+    if car_color:
+        query += " AND Car_Options.color = :car_color"
+        params['car_color'] = car_color
+    if brand:
+        query += " AND Brands.brand_name = :brand"
+        params['brand'] = brand
+    if price:
+        query += " AND Models.model_base_price <= :price"
+        params['price'] = price
+
+    query += " GROUP BY Models.model_id"  # Grouping by model_id to aggregate colors
+
+    try:
+        cur = conn.cursor()
+        cur.execute(query, params)
+        models = cur.fetchall()
+        # Ensuring the possible_colors key is present
+        model_dicts = []
+        for model in models:
+            model_dict = dict(model)
+            model_dict['possible_colors'] = model_dict.get('possible_colors', '').split(',') if model_dict.get('possible_colors') else [] # model_dict.get('possible_colors', ''): if the key is not found, returning an empty string ''. .split(','): splitting the string by commas, to create a list of colors. Lastly, if the possible_colors key is missing or empty, an empty list [] is assigned
+            model_dicts.append(model_dict)
+        return model_dicts
+    except sqlite3.Error as e:
+        print(f"Error fetching models: {e}")
+        return []
+    finally:
+        conn.close()
+
+
+#def get_model_colors_by_id(model_id):
+#    conn = create_connection()
+#    try:
+#        cur = conn.cursor()
+#        cur.execute("SELECT Models.*, GROUP_CONCAT(Car_Options.color) as colors FROM Models JOIN Car_Options ON Models.model_id=Car_Options.model_id WHERE Models.model_id = ?", (model_id,))
+#        model = cur.fetchone()
+#        if model:
+#            model = dict(model)
+#            model['possible_colors'] = model['possible_colors'].split(',') if model['possible_colors'] else []
+#        return model
+#    except sqlite3.Error as e:
+#        print(f"Error fetching model by ID: {e}")
+#        return None
+#    finally:
+#        conn.close()
+
+#def add_model(model):
+#    conn = create_connection()
+#    if conn:
+#        try:
+#            cur = conn.cursor()
+#            columns = ', '.join(model.keys())  # Creating the columns part of the SQL statement
+#            placeholders = ', '.join(['?'] * len(model))  # Creating the placeholders part of the SQL statement
+#            sql = f"INSERT INTO Models ({columns}) VALUES ({placeholders})"  # Combining into a full SQL statement
+#            cur.execute(sql, tuple(model.values()))  # Executing the SQL statement with the actual values
+#            conn.commit()  # Commiting the transaction
+#        except sqlite3.Error as e:
+#            print(f"Error adding model: {e}")
+#        finally:
+#            conn.close()  # Ensuring the connection is closed
+
+#def update_model(model_id, model):
+#    conn = create_connection()
+#    if conn:
+#        try:
+#            cur = conn.cursor()
+#            set_clause = ', '.join([f"{key} = ?" for key in model.keys()])  # Creating the SET part of the SQL statement
+#            sql = f"UPDATE Models SET {set_clause} WHERE model_id = ?"  # Combining into a full SQL statement
+#            values = list(model.values())  # Converting the dictionary values to a list
+#            values.append(model_id)  # Adding the model_id to the list of values
+#            cur.execute(sql, values)  # Executing the SQL statement with the actual values
+#            conn.commit()  # Commiting the transaction
+#        except sqlite3.Error as e:
+#            print(f"Error updating model: {e}")
+#        finally:
+#            conn.close()
+
+#def delete_model(model_id):
+#    conn = create_connection()
+#    if conn:
+#        try:
+#            cur = conn.cursor()
+#            cur.execute("DELETE FROM Models WHERE model_id = ?", (model_id,))  # Executing the DELETE statement with the model_id
+#            conn.commit()  # Commiting the transaction
+#        except sqlite3.Error as e:
+#            print(f"Error deleting model: {e}")
+#        finally:
+#            conn.close() 

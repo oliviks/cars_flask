@@ -37,7 +37,6 @@ def add_data():
         return redirect(url_for('add_table_record', table_name=selected_table))
     return render_template('add_data.html', table_names=table_names)
 
-# ! pojawia sie sqlite_sequence !
 @app.route('/add_data/<table_name>', methods=['GET', 'POST'])
 def add_table_record(table_name):
     data = cars.get_table_data(table_name)
@@ -47,7 +46,6 @@ def add_table_record(table_name):
         return redirect(url_for('display_table_data', table_name=table_name))
     return render_template('add_record.html', table_name=table_name, data=data)
 
-# template podmieniony na edit_data_selection.html
 @app.route('/edit_data', methods=['GET', 'POST'])
 def select_edit_data():
     table_names = cars.get_table_names()
@@ -57,15 +55,15 @@ def select_edit_data():
         return redirect(url_for('edit_data', table_name=table_name, record_id=record_id))
     return render_template('edit_data_selection.html', table_names=table_names)
 
+# Ensuring that the PK IDs remain unchanged - read-only (see: edit_data.html)
 @app.route('/edit_data/<table_name>/<record_id>', methods=['GET', 'POST'])
 def edit_data(table_name, record_id):
     if request.method == 'GET':
         record = cars.get_record_by_id(table_name, record_id, primary_key_columns)
         if record:
-            return render_template('edit_data.html', record=record, table_name=table_name, record_id=record_id)
+            return render_template('edit_data.html', record=record, table_name=table_name, record_id=record_id, primary_key_columns=primary_key_columns)
         else:
             return "Record not found", 404
-        # dobrze by było móc zablokować możliwość edycji ID
     elif request.method == 'POST':
         updated_record = request.form.to_dict()
         if cars.update_record(table_name, primary_key_columns[table_name], record_id, updated_record):
@@ -81,6 +79,7 @@ def update_record_route(table_name, record_id):
     else:
         return "Error updating record", 500  # Internal Server Error
 
+# In delete_row.html, we ensured that a confirmation pop-up for record deletion appears
 @app.route('/delete_data', methods=['GET', 'POST'])
 def delete_data():
     if request.method == 'POST':
@@ -91,7 +90,6 @@ def delete_data():
         if cars.delete_record(selected_table, primary_key_column, record_id):
             delete_message = f"Row with ID {record_id} has been deleted successfully!"
         else:
-            # na czerwony kolor
             delete_message = "Error deleting row!"
 
         table_names = cars.get_table_names()
@@ -141,6 +139,28 @@ def filter_data():
         results = cars.execute_custom_query(query, params)
 
     return render_template('filter_data.html', table_names=table_names, results=results)
+
+######################################################## FILTERING ######################################################## 
+# CRUD for Customers
+
+@app.route('/customers', methods=['GET', 'POST'])
+def customers():
+    if request.method == 'GET':
+        brand = request.args.get('brand')
+        dealer = request.args.get('dealer')
+        purchase_price = request.args.get('purchase_price')
+        model = request.args.get('model')
+        customers = cars.get_customers(brand, dealer, purchase_price, model)
+        return render_template('customers.html', customers=customers)
+
+# CRUD for Models
+@app.route('/models', methods=['GET'])
+def models():
+    car_color = request.args.get('car_color')
+    brand = request.args.get('brand')
+    price = request.args.get('price')
+    models = cars.get_models(car_color, brand, price)
+    return render_template('models.html', models=models)
 
 
 if __name__ == '__main__':
