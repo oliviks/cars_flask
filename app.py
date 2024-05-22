@@ -140,8 +140,9 @@ def filter_data():
 
     return render_template('filter_data.html', table_names=table_names, results=results)
 
-########################################################
+######################################################## FILTERING ######################################################## 
 # CRUD for Customers
+
 @app.route('/customers', methods=['GET', 'POST'])
 def customers():
     if request.method == 'GET':
@@ -151,70 +152,16 @@ def customers():
         model = request.args.get('model')
         customers = cars.get_customers(brand, dealer, purchase_price, model)
         return render_template('customers.html', customers=customers)
-    elif request.method == 'POST':
-        data = request.form.to_dict()
-        cars.add_customer(data)
-        return redirect(url_for('customers'))
-
-@app.route('/customers/add', methods=['GET', 'POST'])
-def add_customer():
-    if request.method == 'POST':
-        data = request.form.to_dict()
-        cars.add_customer(data)
-        return redirect(url_for('customers'))
-    return render_template('add_customer.html')
-
-@app.route('/customers/<int:customer_id>', methods=['GET', 'POST'])
-def customer_detail(customer_id):
-    if request.method == 'GET':
-        customer = cars.get_customer_by_id(customer_id)
-        return render_template('edit_customer.html', customer=customer)
-    elif request.method == 'POST':
-        data = request.form.to_dict()
-        cars.update_customer(customer_id, data)
-        return redirect(url_for('customers'))
-
-@app.route('/customers/delete/<int:customer_id>', methods=['POST'])
-def delete_customer(customer_id):
-    cars.delete_customer(customer_id)
-    return redirect(url_for('customers'))
 
 # CRUD for Models
-@app.route('/models', methods=['GET', 'POST'])
+@app.route('/models', methods=['GET'])
 def models():
-    if request.method == 'GET':
-        car_color = request.args.get('car_color')
-        brand = request.args.get('brand')
-        price = request.args.get('price')
-        models = cars.get_models(car_color, brand, price)
-        return render_template('models.html', models=models)
-    elif request.method == 'POST':
-        data = request.form.to_dict()
-        cars.add_model(data)
-        return redirect(url_for('models'))
+    car_color = request.args.get('car_color')
+    brand = request.args.get('brand')
+    price = request.args.get('price')
+    models = cars.get_models(car_color, brand, price)
+    return render_template('models.html', models=models)
 
-@app.route('/models/add', methods=['GET', 'POST'])
-def add_model():
-    if request.method == 'POST':
-        data = request.form.to_dict()
-        cars.add_model(data)
-        return redirect(url_for('models'))
-    return render_template('add_model.html')
-
-@app.route('/models/<int:model_id>', methods=['GET', 'POST'])
-def model_detail(model_id):
-    if request.method == 'GET':
-        model = cars.get_model_colors_by_id(model_id)
-        return render_template('edit_model.html', model=model)
-    elif request.method == 'POST':
-        data = request.form.to_dict()
-        cars.update_model(model_id, data)
-        return redirect(url_for('models'))
-
-@app.route('/models/delete/<int:model_id>', methods=['POST'])
-def delete_model(model_id):
-    cars.delete_model(model_id)
-    return redirect(url_for('models'))
 
 if __name__ == '__main__':
     app.run(debug=True)
