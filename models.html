@@ -14,26 +14,38 @@
     </style>
 </head>
 <body>
-    <h1>Car Models</h1>
-    <a href="{{ url_for('add_model') }}">Add Model</a>
+    <h1>Filter Car Models based on criteria</h1>
+    
+    <!-- Filter Form -->
+    <form method="get" action="{{ url_for('models') }}">
+        <p>Note: Start each word with a capital letter when filtering.</p>
+        
+        <label for="car_color">Car Color:</label>
+        <input type="text" id="car_color" name="car_color" value="{{ request.args.get('car_color', '') }}">
+        
+        <label for="brand">Brand:</label>
+        <input type="text" id="brand" name="brand" value="{{ request.args.get('brand', '') }}">
+        
+        <label for="price">Maximum Base Price [$]:</label>
+        <input type="text" id="price" name="price" value="{{ request.args.get('price', '') }}">
+        
+        <button type="submit">Filter</button>
+    </form>
+    
     <ul>
         {% for model in models %}
             <li>
-                <h2>{{ model.model_name }}</h2>
-                <p>Brand: {{ model.brand_name }}</p>
-                <p>Base Price: ${{ model.model_base_price }}</p>
-                {% if model.possible_colors %}
+                <h2>{{ model['model_name'] }}</h2>
+                <p>Brand: {{ model['brand_name'] }}</p>
+                <p>Base Price: ${{ model['model_base_price'] }}</p>
+                {% if model['possible_colors'] %}
                     <p>Colors:</p>
                     <div>
-                        {% for color in model.possible_colors %}
-                            <div class="color-circle" style="background: {{ color }};"></div>
+                        {% for color in model['possible_colors'] %}
+                            <div class="color-circle" style="background-color: {{ color }};"></div>
                         {% endfor %}
                     </div>
                 {% endif %}
-                <a href="{{ url_for('model_detail', model_id=model.model_id) }}">Edit</a>
-                <form action="{{ url_for('delete_model', model_id=model.model_id) }}" method="post" style="display:inline;">
-                    <button type="submit">Delete</button>
-                </form>
             </li>
         {% endfor %}
     </ul>
