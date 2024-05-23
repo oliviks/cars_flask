@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Models</title>
+    <meta charset="UTF-8" name="viewport" content="width=device-width, initial-scale=1">
+    <title>Filter Car Models</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles/POPbaseStyle.css') }}">
     <style>
         .color-circle {
             display: inline-block;
@@ -11,43 +12,138 @@
             border: 1px solid black;
             border-radius: 50%;
         }
+        
+        form {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            margin: 20px auto;
+            text-align: center; /* Centering content inside the form */
+        }
+
+        form label {
+            display: block;
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 5px;
+            text-align: left; /* Aligning labels to the left */
+        }
+
+        form select,
+        form input[type="text"],
+        form input[type="submit"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        form input[type="submit"] {
+            background-color: black;
+            color: white;
+            cursor: pointer;
+            border: none;
+            transition: background-color 0.3s;
+        }
+
+        form input[type="submit"]:hover {
+            background-color: #333;
+        }
+
+        form .error-message {
+            color: red;
+            font-size: 14px;
+            margin-top: -10px;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            background-color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+        }
     </style>
 </head>
-<body>
-    <h1>Filter Car Models based on criteria</h1>
-    
-    <!-- Filter Form -->
-    <form method="get" action="{{ url_for('models') }}">
-        <p>Note: Start each word with a capital letter when filtering.</p>
-        
-        <label for="car_color">Car Color:</label>
-        <input type="text" id="car_color" name="car_color" value="{{ request.args.get('car_color', '') }}">
-        
-        <label for="brand">Brand:</label>
-        <input type="text" id="brand" name="brand" value="{{ request.args.get('brand', '') }}">
-        
-        <label for="price">Maximum Base Price [$]:</label>
-        <input type="text" id="price" name="price" value="{{ request.args.get('price', '') }}">
-        
-        <button type="submit">Filter</button>
-    </form>
-    
-    <ul>
-        {% for model in models %}
-            <li>
-                <h2>{{ model['model_name'] }}</h2>
-                <p>Brand: {{ model['brand_name'] }}</p>
-                <p>Base Price: ${{ model['model_base_price'] }}</p>
-                {% if model['possible_colors'] %}
-                    <p>Colors:</p>
-                    <div>
-                        {% for color in model['possible_colors'] %}
-                            <div class="color-circle" style="background-color: {{ color }};"></div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-            </li>
-        {% endfor %}
-    </ul>
+<body class="background_lightgrey">
+    <div class="sidemenu">
+        <a href="/">HOME PAGE</a>
+        <a href="javascript:void(0);" onclick="toggleMenu('databaseMenu')">DATABASE</a>
+        <div class="submenu" id="databaseMenu">
+            {% for table_name in table_names %}
+            <a href="/table/{{ table_name }}">{{ table_name }}</a>
+            {% endfor %}
+        </div>
+        <a href="javascript:void(0);" onclick="toggleMenu('actionsMenu')">ACTIONS</a>
+        <div class="submenu" id="actionsMenu">
+            <a href="/customers">Filter Customers</a>
+            <a href="/models">Filter Models</a>
+            <a href="/add_data">Add Data</a>
+            <a href="/edit_data">Edit Data</a>
+            <a href="/delete_data">Delete Data</a>
+        </div>
+    </div>
+
+    <div class="main">
+        <h1 class="header_grey">Filter Car Models</h1>
+        <form method="get" action="{{ url_for('models') }}">
+            <p>Note: Start each word with a capital letter when filtering.</p>
+            
+            <div class="form-group">
+                <label for="car_color">Car Color:</label>
+                <input type="text" id="car_color" name="car_color" value="{{ request.args.get('car_color', '') }}">
+            </div>
+            <div class="form-group">
+                <label for="brand">Brand:</label>
+                <input type="text" id="brand" name="brand" value="{{ request.args.get('brand', '') }}">
+            </div>
+            <div class="form-group">
+                <label for="price">Maximum Base Price [$]:</label>
+                <input type="text" id="price" name="price" value="{{ request.args.get('price', '') }}">
+            </div>
+            
+            <button class="btn-outline-secondary" type="submit">Filter</button>
+        </form>
+
+        <ul>
+            {% for model in models %}
+                <li>
+                    <h2>{{ model['model_name'] }}</h2>
+                    <p>Brand: {{ model['brand_name'] }}</p>
+                    <p>Base Price: ${{ model['model_base_price'] }}</p>
+                    {% if model['possible_colors'] %}
+                        <p>Colors:</p>
+                        <div>
+                            {% for color in model['possible_colors'] %}
+                                <div class="color-circle" style="background-color: {{ color }};"></div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <script>
+        function toggleMenu(menuId) {
+            var menu = document.getElementById(menuId);
+            if (menu.style.display === "block") {
+                menu.style.display = "none";
+            } else {
+                menu.style.display = "block";
+            }
+        }
+    </script>
 </body>
 </html>
