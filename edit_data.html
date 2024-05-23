@@ -23,6 +23,8 @@
         </div>
         <a href="javascript:void(0);" onclick="toggleMenu('actionsMenu')">ACTIONS</a>
         <div class="submenu" id="actionsMenu">
+            <a href="/customers">Filter Customers</a>
+            <a href="/models">Filter Models</a>
             <a href="/add_data">Add Data</a>
             <a href="/edit_data">Edit Data</a>
             <a href="/delete_data">Delete Data</a>
@@ -38,7 +40,12 @@
                 {% for column, value in record.items() %}
                 <div class="form-group">
                     <label for="{{ column }}">{{ column }}:</label>
-                    <input type="text" id="{{ column }}" name="{{ column }}" value="{{ value }}">
+                    {% if column == primary_key_columns[table_name] %}
+                        <!-- Making the PK read-only-->
+                        <input type="text" id="{{ column }}" name="{{ column }}" value="{{ value }}" readonly>
+                    {% else %}
+                        <input type="text" id="{{ column }}" name="{{ column }}" value="{{ value }}">
+                    {% endif %}
                 </div>
                 {% endfor %}
                 <button class="btn-outline-secondary" type="submit" class="btn-submit">Submit</button>
